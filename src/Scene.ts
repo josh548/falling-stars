@@ -24,6 +24,10 @@ function getRandomIntBetween(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+function clamp(x: number, min: number, max: number): number {
+    return Math.min(Math.max(x, min), max);
+}
+
 export class Scene {
     private readonly context: CanvasRenderingContext2D;
     private currentFrame: number = 0;
@@ -56,9 +60,12 @@ export class Scene {
     private generateRandomPointsForFixedStars(): Point[] {
         const points: Point[] = [];
         while (points.length < fixedStarCount) {
+            const randomX: number = Math.floor(Math.random() * this.context.canvas.width);
+            const randomY: number =
+                Math.floor(Math.random() * (this.context.canvas.height - groundHeight));
             const randomPoint: Point = new Point(
-                Math.floor(Math.random() * this.context.canvas.width),
-                Math.floor(Math.random() * this.context.canvas.height),
+                clamp(randomX, 20, this.context.canvas.width - 20),
+                clamp(randomY, 20, this.context.canvas.height - groundHeight - 20),
             );
             let usePoint: boolean = true;
             for (const existingPoint of points) {
