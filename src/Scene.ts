@@ -1,68 +1,96 @@
+import { getDistanceBetweenPoints, Point } from "./Point";
 import { Spark } from "./Spark";
 import { Star } from "./Star";
 
 import {
-    minimumDistanceBetweenFixedStars,
-    numberOfFixedStars,
+    existingFallingStarMinRadius,
+    fallingStarCreationInterval,
+    fallingStarGravity,
+    fallingStarInitialVelocity,
+    fixedStarCount,
+    fixedStarMaxSize,
+    groundColor,
+    groundHeight,
+    minDistanceBetweenFixedStars,
+    newFallingStarMaxRadius,
+    newFallingStarMinRadius,
+    skyGradientEndColor,
+    skyGradientStartColor,
     sparkLifeSpanInFrames,
-    starCreationIntervalInFrames,
-    starGravity,
-    starInitialVelocity,
+    starColor,
 } from "./constants";
 
-import {
-    getDistanceBetweenPoints,
-    Point,
-} from "./Point";
+function getRandomIntBetween(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 export class Scene {
     private readonly context: CanvasRenderingContext2D;
     private currentFrame: number = 0;
+    private readonly skyGradient: CanvasGradient;
     private readonly fixedStars: Star[] = [];
-    private readonly sparks: Spark[] = [];
     private fallingStars: Star[] = [];
+    private readonly sparks: Spark[] = [];
 
     public constructor(context: CanvasRenderingContext2D) {
         this.context = context;
+        this.skyGradient = this.context.createLinearGradient(0, 0, 0, this.context.canvas.height);
+        this.skyGradient.addColorStop(0, skyGradientStartColor);
+        this.skyGradient.addColorStop(1, skyGradientEndColor);
+        this.fallingStars.push(this.createFallingStar());
         this.createFixedStars();
     }
 
-    private createFixedStars(): void {
-        const fixedStarPoints: Point[] = [];
-        while (fixedStarPoints.length < numberOfFixedStars) {
+    private createFallingStar(): Star {
+        const randomX: number = Math.floor(Math.random() * this.context.canvas.width);
+        const randomY: number = -Math.floor(Math.random() * (this.context.canvas.height / 4));
+        const radius: number = getRandomIntBetween(newFallingStarMinRadius,
+                                                   newFallingStarMaxRadius);
+        // Generate an angle between 17pi/12 and 19pi/12
+        const randomAngle: number = (Math.PI * (17 / 12)) + (Math.random() * (Math.PI / 6));
+
+        return new Star(this.context, randomX, randomY, radius, fallingStarInitialVelocity,
+                        randomAngle, fallingStarGravity, this.sparks);
+    }
+
+    private generateRandomPointsForFixedStars(): Point[] {
+        const points: Point[] = [];
+        while (points.length < fixedStarCount) {
             const randomPoint: Point = new Point(
                 Math.floor(Math.random() * this.context.canvas.width),
                 Math.floor(Math.random() * this.context.canvas.height),
             );
-            let addPoint: boolean = true;
-            for (const point of fixedStarPoints) {
-                if (getDistanceBetweenPoints(point, randomPoint) <
-                        minimumDistanceBetweenFixedStars) {
-                    addPoint = false;
+            let usePoint: boolean = true;
+            for (const existingPoint of points) {
+                if (getDistanceBetweenPoints(existingPoint, randomPoint) <
+                        minDistanceBetweenFixedStars) {
+                    usePoint = false;
                     break;
                 }
             }
-            if (addPoint) {
-                fixedStarPoints.push(randomPoint);
+            if (usePoint) {
+                points.push(randomPoint);
             }
         }
 
-        for (const point of fixedStarPoints) {
-            const randomRadius: number =
-                Math.floor(Math.random() * (Math.min(this.context.canvas.width,
-                                                     this.context.canvas.height) / 200));
+        return points;
+    }
+
+    private createFixedStars(): void {
+        const randomPoints: Point[] = this.generateRandomPointsForFixedStars();
+        for (const point of randomPoints) {
+            const radius: number = Math.ceil(Math.random() * fixedStarMaxSize);
             this.fixedStars.push(
-                new Star(this.context, point.x, point.y, randomRadius, 0, 0, 0, this.sparks),
+                new Star(this.context, point.x, point.y, radius, 0, 0, 0, this.sparks),
             );
         }
     }
 
     public update(): void {
         this.currentFrame++;
-        if (this.currentFrame % starCreationIntervalInFrames === 0) {
+        if (this.currentFrame % fallingStarCreationInterval === 0) {
             this.fallingStars.push(this.createFallingStar());
         }
-
         for (const star of this.fixedStars) {
             star.update();
         }
@@ -72,12 +100,9 @@ export class Scene {
         for (const spark of this.sparks) {
             spark.update();
         }
-
         // Remove falling stars that have become too small
-        const minimumRadius: number =
-            (Math.min(this.context.canvas.width, this.context.canvas.height) / 200);
-        this.fallingStars = this.fallingStars.filter((star: Star) => star.radius > minimumRadius);
-
+        this.fallingStars = this.fallingStars.filter(
+            (star: Star) => star.radius >= existingFallingStarMinRadius);
         // Remove sparks that are too old
         while (true) {
             let removedSpark: boolean = false;
@@ -94,25 +119,20 @@ export class Scene {
         }
     }
 
-    private createFallingStar(): Star {
-        const randomX: number = Math.floor(Math.random() * this.context.canvas.width);
-        const randomY: number = -Math.floor(Math.random() * (this.context.canvas.height / 4));
-        const minRadius: number =
-            Math.min(this.context.canvas.width, this.context.canvas.height) / 50;
-        // Generate an angle between 17pi/12 and 19pi/12
-        const randomAngle: number = (Math.PI * (17 / 12)) + (Math.random() * (Math.PI / 6));
-
-        return new Star(this.context, randomX, randomY, minRadius, starInitialVelocity, randomAngle,
-                        starGravity, this.sparks);
-    }
-
     public draw(): void {
-        this.context.fillStyle = "#0f0f0f";
+        this.context.fillStyle = this.skyGradient;
         this.context.fillRect(0, 0, this.context.canvas.width, this.context.canvas.height);
-        this.context.fillStyle = "#f0f0f0";
+
+        this.context.fillStyle = starColor;
         for (const star of this.fixedStars) {
             star.draw();
         }
+
+        this.context.fillStyle = groundColor;
+        this.context.shadowBlur = 0;
+        this.context.fillRect(0, this.context.canvas.height - groundHeight + 1,
+                              this.context.canvas.width, groundHeight);
+
         for (const star of this.fallingStars) {
             star.draw();
         }
