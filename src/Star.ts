@@ -81,7 +81,7 @@ export class Star {
     public draw(): void {
         this.context.beginPath();
         this.context.fillStyle = starColor;
-        this.context.shadowBlur = Math.floor(this.radius * 5);
+        this.context.shadowBlur = Math.round(this.radius * ((Math.random() * 2) + 1));
         this.context.shadowColor = starColor;
         this.context.arc(Math.floor(this.cx), Math.floor(this.cy), Math.floor(this.radius), 0,
                          Math.PI * 2);
