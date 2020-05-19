@@ -14,5 +14,5 @@ npm run build
 # OR
 
 # build every time a source file changes
-npm run build-watch
+npm run build:watch
 ```
