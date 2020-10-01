@@ -30,7 +30,7 @@ function clamp(x: number, min: number, max: number): number {
 
 export class Scene {
     private readonly context: CanvasRenderingContext2D;
-    private currentFrame: number = 0;
+    private currentFrame = 0;
     private readonly skyGradient: CanvasGradient;
     private readonly fixedStars: Star[] = [];
     private fallingStars: Star[] = [];
@@ -67,7 +67,7 @@ export class Scene {
                 clamp(randomX, 20, this.context.canvas.width - 20),
                 clamp(randomY, 20, this.context.canvas.height - groundHeight - 20),
             );
-            let usePoint: boolean = true;
+            let usePoint = true;
             for (const existingPoint of points) {
                 if (getDistanceBetweenPoints(existingPoint, randomPoint) <
                         minDistanceBetweenFixedStars) {
@@ -111,9 +111,10 @@ export class Scene {
         this.fallingStars = this.fallingStars.filter(
             (star: Star) => star.radius >= existingFallingStarMinRadius);
         // Remove sparks that are too old
+        // eslint-disable-next-line no-constant-condition
         while (true) {
-            let removedSpark: boolean = false;
-            for (let i: number = 0; i < this.sparks.length; i++) {
+            let removedSpark = false;
+            for (let i = 0; i < this.sparks.length; i++) {
                 if (this.sparks[i].currentFrame > sparkLifeSpanInFrames) {
                     this.sparks.splice(i, 1);
                     removedSpark = true;

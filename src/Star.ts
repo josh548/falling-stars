@@ -11,7 +11,7 @@ import { Spark } from "./Spark";
 
 export class Star {
     private readonly context: CanvasRenderingContext2D;
-    private currentFrame: number = 0;
+    private currentFrame = 0;
     public cx: number;
     public cy: number;
     public radius: number;
@@ -68,7 +68,7 @@ export class Star {
     }
 
     private createSparks(): void {
-        for (let i: number = 0; i < numberOfSparksCreatedOnImpact; i++) {
+        for (let i = 0; i < numberOfSparksCreatedOnImpact; i++) {
             const starVelocity: number = Math.sqrt((this.vx ** 2) + (this.vy ** 2));
             const sparkVelocity: number = starVelocity + (Math.random() * starVelocity * 1.5);
             const sparkAngle: number = (Math.random() * Math.PI * 0.5) + (Math.PI * 0.25);

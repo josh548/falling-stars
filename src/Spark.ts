@@ -10,7 +10,7 @@ import {
 
 export class Spark {
     private readonly context: CanvasRenderingContext2D;
-    public currentFrame: number = 0;
+    public currentFrame = 0;
     public cx: number;
     public cy: number;
     public radius: number;
@@ -84,7 +84,7 @@ export class Spark {
         this.context.shadowBlur = 0;
 
         // Draw all of the points
-        for (let i: number = 0; i < this.path.length; i++) {
+        for (let i = 0; i < this.path.length; i++) {
             const point: Point = this.path[i];
             this.context.beginPath();
             const alpha: number = ((this.path.length - i) / this.path.length) * baseAlpha;
